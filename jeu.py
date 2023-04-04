@@ -1,71 +1,24 @@
 from entite.ennemie import Ennemi
 from entite.explosion import Explosion
-from entite.vaisseau import Vaisseau
-from entite.score import Score
-from entite.texte import Texte
+from config import *
 
-#Code obligatoire lorsqu'on utilise pygame
-import pygame
-pygame.init()
-
-#Définition d'un titre
-pygame.display.set_caption("Jeu de tir dans l'espace")
-
-#Définition de l'écran avec ses dimensions 
-largeur=800
-hauteur=600
-ecran=pygame.display.set_mode([largeur,hauteur])
-
-#Définir les objets
-heros=Vaisseau()
-lesMissiles=pygame.sprite.Group()
-lesEnnemis=pygame.sprite.Group()
-lesExplosions=pygame.sprite.Group()
-
-
-#Gestion des temps d'exécution
-temps=pygame.time.Clock()
-creationEnnemi= pygame.USEREVENT + 1 #Creation d'une évènement  
-
-pygame.time.set_timer(creationEnnemi,1000) #Le timer déclenche l'évènement toutes les secondes
-
-pause=False
-
-#Gestions de l'afichage du score
-pygame.font.init()
-police=pygame.font.SysFont("algerian", 40)
-point=Score(police, largeur)
-
-
-
-#Gestion du son
-pygame.mixer.init()
-sonExplosion=pygame.mixer.Sound("ressources/explosion.ogg")
-sonDeTir=pygame.mixer.Sound("ressources/laser.ogg")
-
-
-
-bravo=Texte("BRAVO",police,largeur,hauteur)
-txtGameOver=Texte("GAME OVER",police,largeur,hauteur)
-#Définition de la boucle permettant l'exécution en continue du jeu
-continuer=True
-while continuer:
+def playGame():
     for event in pygame.event.get():
         if event.type==pygame.QUIT:
-            continuer = False
-        elif event.type == creationEnnemi:
+            return 0
+        if event.type == creationEnnemi:
             newEnnemi= Ennemi(largeur,hauteur)
             lesEnnemis.add(newEnnemi)
 
-    ecran.fill((0,25,25))
+    #Définition de la couleur de la scène
+    ecran.fill(sceneColor)
     #Detecter les colisions ennemi/heros
     if pygame.sprite.spritecollideany(heros, lesEnnemis):
-       
         heros.kill()
         lesExplosions.add(Explosion(heros.rect.center))
         sonExplosion.play()
         ecran.blit(txtGameOver.surf,txtGameOver.rect)
-        continuer = False
+        return 0
         
 
     #Detecter les colisions ennemi/missile
@@ -81,15 +34,77 @@ while continuer:
 
 
     touche_pressee=pygame.key.get_pressed()#pour savoir quelle touche a été appuyé pendant l'exécution
-    if touche_pressee[pygame.K_TAB] :
-        sonDeTir.play()
+    
+        
+        
     #Les méthodes update perment de modifier l'emplacement des différents objets sur l'écran
-    heros.update(touche_pressee,largeur,hauteur,lesMissiles)
+    heroTir = heros.update(touche_pressee,largeur,hauteur,lesMissiles)
+    if (heroTir == 1):
+        sonDeTir.play()
     lesMissiles.update(largeur)
     lesEnnemis.update()
     lesExplosions.update()
     point.update(police,largeur)
 
+      
+   
+    
+    return 1;
+
+
+def pause():
+    for event in pygame.event.get():
+        if event.type==pygame.QUIT:
+            return 0
+        
+
+    #Définition de la couleur de la scène
+    ecran.fill(sceneColor)
+    
+    ecran.blit(pauseText.surf,pauseText.rect)
+
+    
+    
+    return 1;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#Définition de la boucle permettant l'exécution en continue du jeu
+arret = 1
+isPause = False
+while True:
+    touche_pressee=pygame.key.get_pressed()#pour savoir quelle touche a été appuyé pendant l'exécution
+    if touche_pressee[pygame.K_SPACE] :
+        pygame.time.delay(100)
+        isPause = not isPause
+
+    if isPause:
+        arret = pause()
+    else:
+        arret = playGame()
+    
+    if arret == 0:
+        break
+
+  
+    
+    #Affichage des objets sur la scène
     ecran.blit(heros.fond,heros.rect)#Afficher le héros à l'écran
 
     ecran.blit(point.surf,point.rect)#Afficher le score à l'écran
@@ -104,12 +119,12 @@ while continuer:
 
     for boom in lesExplosions:
         ecran.blit(boom.fond,boom.rect)#Afficher les explosions à l'écran
-
-
     
     pygame.display.flip()
 
     temps.tick(20)
+
+
 pygame.time.delay(2000)
 pygame.quit()
 

@@ -19,20 +19,26 @@ class Vaisseau(pygame.sprite.Sprite):
     def update(self,touche,largEcran, hautEcran, missiles):
         if touche[pygame.K_UP]:
             self.rect.move_ip(0, -self.vitesse)
+            return 0
 
         if touche[pygame.K_DOWN]:
             self.rect.move_ip(0, self.vitesse)
+            return 0
 
 
         if touche[pygame.K_LEFT]:
             self.rect.move_ip(-self.vitesse, 0)
+            return 0
 
         if touche[pygame.K_RIGHT]:
             self.rect.move_ip(self.vitesse, 0)
+            return 0
 
         if touche[pygame.K_TAB]:
             if len(missiles)<3:
                 missiles.add(Missile(self.rect.center))
+                pygame.time.delay(150)
+                return 1
 
         #Les conditions pour empêcher le vaisseau de bouger hors de l'écran
         if self.rect.top < 0:
